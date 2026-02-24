@@ -2,15 +2,25 @@ import axios, { AxiosError } from 'axios';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 const API_TOKEN = process.env.EXPO_PUBLIC_API_TOKEN || '';
+let activeAuthToken = API_TOKEN;
 
 const apiClient = axios.create({
   baseURL: API_URL,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
-    ...(API_TOKEN ? { Authorization: `Bearer ${API_TOKEN}` } : {}),
   },
 });
+
+function getAuthHeaders() {
+  if (!activeAuthToken) {
+    return undefined;
+  }
+
+  return {
+    Authorization: `Bearer ${activeAuthToken}`,
+  };
+}
 
 export class ApiError extends Error {
   constructor(
@@ -27,7 +37,7 @@ export async function apiGet<T>(
   params?: Record<string, string | number | boolean | undefined>
 ): Promise<T> {
   try {
-    const response = await apiClient.get<T>(url, { params });
+    const response = await apiClient.get<T>(url, { params, headers: getAuthHeaders() });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -47,7 +57,7 @@ export async function apiPost<T>(
   data?: Record<string, unknown>
 ): Promise<T> {
   try {
-    const response = await apiClient.post<T>(url, data);
+    const response = await apiClient.post<T>(url, data, { headers: getAuthHeaders() });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -68,7 +78,11 @@ export async function apiPost<T>(
  * the other side of a conversation, then switch back.
  */
 export function setAuthToken(token: string) {
-  apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  activeAuthToken = token.trim();
+}
+
+export function getActiveTokenPrefix() {
+  return activeAuthToken ? activeAuthToken.slice(0, 8) : 'none';
 }
 
 export default apiClient;
