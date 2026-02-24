@@ -65,6 +65,20 @@ All messaging API responses are validated in `src/api/messages.ts` using Zod sch
 - Pagination currently appends by re-fetching older pages from API cursor; optimistic local sends are not yet implemented.
 - Compose uses recipient ID input; production app should provide researcher search/autocomplete.
 
+### Two-account testing note
+
+User switching is fully implemented — tapping "Use User A / Use User B" on the Home tab calls `setAuthToken()` and `queryClient.clear()`, so all queries refetch under the new identity. The pending/accept flow was tested against the seeded recipients (Dr. Sarah Chen, Prof. Marcus Williams). A direct A→B message requires knowing User A's `user_id`, which no endpoint in this test environment exposes. In production this would be a non-issue as user IDs are surfaced through researcher profiles and search.
+
+### QA helpers intentionally kept
+
+A few developer aids were left in rather than removed before submission:
+
+- **Conversation row user ID label** — shows `other_user.user_id` on each row to make it easy to copy a recipient ID for compose testing without needing to inspect network traffic.
+- **Compose quick-pick recipients** — pre-fills the recipient field with known seeded users so the flow can be tested without manual ID lookup.
+- **Welcome screen token prefix** — displays the first few characters of the active token to confirm which account is active after switching.
+
+These would be removed before a production release but were useful throughout development and left in to make the test environment easier to navigate.
+
 ## Testing
 
 Implemented two critical-path tests with Jest + React Native Testing Library:
