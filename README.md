@@ -92,6 +92,43 @@ Implemented two critical-path tests with Jest + React Native Testing Library:
   - Input clears on success
   - Inline error and input preservation on failure
 
+## Expo Compatibility & Environment Setup
+
+### Initial environment
+
+- iPhone running iOS 26.4 with the latest Expo Go app, which supports Expo SDK 54.
+- This repo is pinned to Expo SDK 51 (`expo ~51.0.31` in `package.json`).
+
+### Why iPhone testing failed
+
+- Expo Go on device showed: *"Project is incompatible… Expo Go SDK 54 vs project SDK 51."*
+- The App Store only carries the latest Expo Go build, so downgrading to SDK 51 on a physical device isn't possible without a custom dev client.
+
+### Network attempts before switching to simulator
+
+- Tunnel mode (`exp.direct`) hit a certificate error in this environment.
+- LAN mode connected but was still blocked by the SDK mismatch on the real device.
+
+### Workaround
+
+Switched to iOS Simulator. Expo CLI can install a compatible Expo Go build for simulator regardless of the SDK pinned in the project, so the SDK 51 app runs cleanly there.
+
+```bash
+npm start -- --ios --clear
+```
+
+### Additional runtime issues fixed during setup
+
+| Issue | Fix |
+|---|---|
+| Axios bundling error (Node `crypto` module) | Pinned axios to `1.7.7` in `package.json` |
+| `main has not been registered` on launch | Added `index.js` with `registerRootComponent(App)`, updated `package.json` `main` to `index.js` |
+| Metro disconnect warning (1001 stream end) | Restarted Metro cleanly and relaunched simulator |
+
+### Current testing approach
+
+All UI testing was run in iOS Simulator (SDK 51-compatible). The practical alternative without upgrading the entire repo to SDK 54 — which would be the right long-term fix but out of scope for this take-home.
+
 ## Files added/updated
 
 - `src/schemas/messages.ts`
